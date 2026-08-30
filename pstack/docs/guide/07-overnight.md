@@ -21,7 +21,7 @@ Walk through what each line buys you:
 - "done means..." turns the goal into checks every iteration can run.
 - "fresh worktree off `<base>`" keeps the run from colliding with anything else you have open.
 - "don't ask me before committing" pre-answers the permission the agent would otherwise block on.
-- `/loop` is Cursor's built-in wake mechanism, not a pstack skill. The [Autonomous run playbook](../../skills/poteto-mode/playbooks/autonomous-run.md) uses it to re-check the finish condition on events or a heartbeat.
+- A loop is your host's wake mechanism, not a pstack skill. Some agents ship a `/loop` command; others use cron, a CI schedule, or a watcher subagent. The [Autonomous run playbook](../../skills/poteto-mode/playbooks/autonomous-run.md) uses whichever you have to re-check the finish condition on events or a heartbeat, per the [host adapter](../../skills/shared/host-adapter.md).
 - The escape hatch lets it stop at a genuine dead end and write up why, which beats eight hours of creative goal reinterpretation.
 
 Because you'll review this work after stepping away, `/poteto-mode` routes it through [`/figure-it-out`](../../skills/figure-it-out/SKILL.md), which designs the run's phases before any code and wires in the decision log.
@@ -76,6 +76,6 @@ The contract above drives one task to one finish condition. Some nights hold mor
 /poteto-mode orchestrate the store migration. own it until every package is converted and merged. i'll check in twice a day.
 ```
 
-**Pitfall:** a duration is not a finish condition. "work on this for 4 hours" gives the agent nothing to check, and you'll wake up to four hours of motion instead of a result. Give `/loop` a predicate that can pass or fail.
+**Pitfall:** a duration is not a finish condition. "work on this for 4 hours" gives the agent nothing to check, and you'll wake up to four hours of motion instead of a result. Give the loop a predicate that can pass or fail.
 
 Next: [Steer with principle names](./08-principles.md).

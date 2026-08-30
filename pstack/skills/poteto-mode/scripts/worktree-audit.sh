@@ -22,9 +22,20 @@ prs=$(mktemp)
 gh pr list --author "@me" --state all --limit 1000 \
 	--json number,state,headRefName 2>/dev/null > "$prs" || echo "[]" > "$prs"
 
-# Transcripts dir: ~/.cursor/projects/<slugified-repo-path>/agent-transcripts.
+# Transcripts dir. PSTACK_TRANSCRIPTS_DIR wins; otherwise probe the known
+# per-host layouts for a directory keyed by the slugified repo path. See
+# ../../shared/host-adapter.md.
 slug=$(printf '%s' "$main_wt" | sed 's#^/##; s#/#-#g')
-transcripts="$HOME/.cursor/projects/$slug/agent-transcripts"
+transcripts="${PSTACK_TRANSCRIPTS_DIR:-}"
+if [ -z "$transcripts" ]; then
+	for candidate in \
+		"$HOME/.claude/projects/$slug" \
+		"$HOME/.cursor/projects/$slug/agent-transcripts" \
+		"$HOME/.codex/sessions/$slug"; do
+		[ -d "$candidate" ] && transcripts="$candidate" && break
+	done
+fi
+# Empty stays empty: the LAST_CHAT column degrades to "?" rather than failing.
 now=$(date +%s)
 
 printf "SIZE\tAGE\tMERGED\tDIRTY\tREMOTE\tPR\tLAST_CHAT\tBUCKET\tWORKTREE\n"

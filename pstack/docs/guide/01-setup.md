@@ -2,15 +2,17 @@
 
 In this page you install the plugin, pick which models pstack uses, and run your first task. Setup is one command plus a short conversation.
 
-## Install the plugin
+## Install the skills
 
-In a Cursor chat, run:
+pstack is a directory of skills. Install it wherever your agent looks for them.
 
-```text
-/add-plugin pstack
+Clone it and point your agent at the `skills/` directory:
+
+```bash
+git clone https://github.com/cursor/plugins.git && cp -r plugins/pstack/skills ./pstack-skills
 ```
 
-Cursor confirms the plugin is installed.
+Or, if your agent has a plugin or skill-install command, use that. The [README](../../README.md#install) lists the per-host paths. Confirm the install by asking your agent to list its skills; `poteto-mode` and the `principle-*` set should appear.
 
 ## Pick your models
 
@@ -20,7 +22,7 @@ Run:
 /setup-pstack
 ```
 
-[`/setup-pstack`](../../skills/setup-pstack/SKILL.md) detects the models you have access to, shows you each role (code delegates, judgment, the review panels), and asks what you want. Answer the questions. It writes `~/.cursor/rules/pstack-models.mdc`, a small rule every pstack skill reads.
+[`/setup-pstack`](../../skills/setup-pstack/SKILL.md) detects the models you have access to, shows you each role (code delegates, judgment, the review panels), and asks what you want. Answer the questions. It writes `~/.pstack/models.md`, a small config file every pstack skill reads.
 
 You only override what you care about. A role with no line in the rule keeps the skill's default. To restore a default later, delete that role's line, or just run `/setup-pstack` again.
 
@@ -30,7 +32,7 @@ You might be wondering what happens if you use Auto. Set a role to `inherit-pare
 
 At the end of setup, `/setup-pstack` looks for a way to prove app behavior in your project, either a `verify-*` skill or an existing harness. If it finds neither, it offers once to generate one with [`/create-verification-skill`](../../skills/create-verification-skill/SKILL.md).
 
-Say yes and it writes `.cursor/skills/verify-<app>/`, a project-local skill that teaches agents to drive your app the way a user does. It proves the skill works once before handing it over. Say no and setup moves on. You can run `/create-verification-skill` yourself any time. [Verify and ship](./06-verify-and-ship.md#create-a-project-verification-skill) covers when it earns its place.
+Say yes and it writes `verify-<app>/` into your project's skill directory, a project-local skill that teaches agents to drive your app the way a user does. It proves the skill works once before handing it over. Say no and setup moves on. You can run `/create-verification-skill` yourself any time. [Verify and ship](./06-verify-and-ship.md#create-a-project-verification-skill) covers when it earns its place.
 
 After setup, start a new chat. The model rule applies to new sessions.
 
