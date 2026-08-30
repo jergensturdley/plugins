@@ -330,27 +330,50 @@ function parseComment(value: unknown): T.ReviewComment {
     createdAt: string(object.createdAt, "review comment.createdAt"),
   };
 }
-function isBugbot(comment: T.ReviewComment | null): boolean {
+// Automated reviewers vary by repository, not by the agent host. Override the
+// author list with PSTACK_REVIEW_BOTS (comma-separated login substrings).
+// See ../../shared/host-adapter.md for the known bots.
+const DEFAULT_REVIEW_BOT_AUTHORS = [
+  "bugbot",
+  "coderabbit",
+  "greptile",
+  "copilot",
+] as const;
+const AMBIGUOUS_REVIEW_BOT_AUTHORS = ["cursor", "github-actions"] as const;
+const REVIEW_BOT_BODY_TOKENS = [
+  "bugbot",
+  "cursor_automation_id",
+  "agentic security review",
+  "security review",
+  "review automation",
+  "description start",
+  "severity",
+] as const;
+function reviewBotAuthors(): readonly string[] {
+  const configured = (process.env.PSTACK_REVIEW_BOTS ?? "")
+    .split(",")
+    .map((entry) => entry.trim().toLowerCase())
+    .filter((entry) => entry.length > 0);
+  return configured.length > 0 ? configured : DEFAULT_REVIEW_BOT_AUTHORS;
+}
+function isReviewBot(comment: T.ReviewComment | null): boolean {
   if (comment === null) return false;
   const author = (comment.authorLogin ?? "").toLowerCase();
   const body = comment.body.toLowerCase();
+  if (reviewBotAuthors().some((known) => author.includes(known))) return true;
+  // An account that also posts as a human needs a bot-shaped body to qualify.
   return (
-    author.includes("bugbot") ||
-    (author === "cursor" &&
-      [
-        "bugbot",
-        "cursor_automation_id",
-        "agentic security review",
-        "description start",
-        "severity",
-      ].some((token) => body.includes(token)))
+    AMBIGUOUS_REVIEW_BOT_AUTHORS.some((known) => author === known) &&
+    REVIEW_BOT_BODY_TOKENS.some((token) => body.includes(token))
   );
 }
 function passKey(comment: T.ReviewComment | null): string | null {
   if (comment === null) return null;
+  // Each review pass stamps its own run id. Vendors name the field differently.
   for (const pattern of [
     /RUN_ID:\s*([a-zA-Z0-9_.:-]+)/,
-    /CURSOR_AUTOMATION_ID:\s*([a-zA-Z0-9_.:-]+)/,
+    /[A-Z][A-Z0-9_]*AUTOMATION_ID:\s*([a-zA-Z0-9_.:-]+)/,
+    /REVIEW_ID:\s*([a-zA-Z0-9_.:-]+)/,
   ]) {
     const match = pattern.exec(comment.body);
     if (match?.[1]) return match[1];
@@ -384,7 +407,7 @@ export function parseReviewThreads(value: unknown): readonly T.ReviewThread[] {
   const keys = new Set<string>();
   let keyless = false;
   for (const thread of threads) {
-    if (!isBugbot(thread.firstComment)) continue;
+    if (!isReviewBot(thread.firstComment)) continue;
     const key = passKey(thread.firstComment);
     if (key === null) keyless = true;
     else keys.add(key);
@@ -395,8 +418,8 @@ export function parseReviewThreads(value: unknown): readonly T.ReviewThread[] {
     .map(({ id, firstComment }) => ({
       id,
       firstComment,
-      isBugbot: isBugbot(firstComment),
-      bugbotReviewPasses: passes,
+      isReviewBot: isReviewBot(firstComment),
+      reviewBotPasses: passes,
     }));
 }
 export function parsePullRequest(

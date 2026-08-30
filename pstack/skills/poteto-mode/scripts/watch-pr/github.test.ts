@@ -192,7 +192,7 @@ describe("closed enum parsing", () => {
   });
 });
 
-it("annotates Bugbot threads with distinct review-pass counts", () => {
+it("annotates review-bot threads with distinct review-pass counts", () => {
   const response = {
     data: {
       repository: {
@@ -252,8 +252,8 @@ it("annotates Bugbot threads with distinct review-pass counts", () => {
   };
   const threads = parseReviewThreads(response);
   expect(threads).toHaveLength(2);
-  expect(threads.map((thread) => thread.isBugbot)).toEqual([true, true]);
-  expect(threads.map((thread) => thread.bugbotReviewPasses)).toEqual([3, 3]);
+  expect(threads.map((thread) => thread.isReviewBot)).toEqual([true, true]);
+  expect(threads.map((thread) => thread.reviewBotPasses)).toEqual([3, 3]);
 });
 
 describe("context and stack discovery", () => {
