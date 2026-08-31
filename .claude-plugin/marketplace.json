@@ -1,0 +1,17 @@
+{
+  "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
+  "name": "jergensturdley-plugins",
+  "description": "Claude Code view of this plugin repo. The Cursor marketplace lives at .cursor-plugin/marketplace.json; this file lists the plugins that carry a Claude manifest.",
+  "owner": {
+    "name": "jergensturdley",
+    "url": "https://github.com/jergensturdley"
+  },
+  "plugins": [
+    {
+      "name": "pstack",
+      "description": "If you want to go fast, go deep first. Rigorous agent workflows you can parallelize with confidence: poteto-mode, the principle-* skills, and review/planning tooling.",
+      "source": "./pstack",
+      "category": "developer-tools"
+    }
+  ]
+}
